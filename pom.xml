@@ -69,6 +69,7 @@
                     </execution>
                 </executions>
                 <configuration>
+                    <skip>true</skip>
                     <repository>${project.artifactId}</repository>
                     <tag>${project.version}</tag>
                     <buildArgs>
