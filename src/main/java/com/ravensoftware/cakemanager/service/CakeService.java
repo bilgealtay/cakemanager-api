@@ -1,12 +1,15 @@
 package com.ravensoftware.cakemanager.service;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ravensoftware.cakemanager.constants.MessageConstants;
 import com.ravensoftware.cakemanager.model.dto.CakeModel;
 import com.ravensoftware.cakemanager.model.entity.Cake;
 import com.ravensoftware.cakemanager.repository.CakeRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.InputStreamResource;
 import org.springframework.stereotype.Service;
 
+import java.io.*;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -19,6 +22,7 @@ public class CakeService {
     @Autowired
     private CakeRepository cakeRepository;
 
+    // save Cake
     public String save(CakeModel cakeModel){
 
         if (cakeModel.getTitle() == null || cakeModel.getTitle().isEmpty()){
@@ -44,6 +48,8 @@ public class CakeService {
         return cakeRepository.findByTitle(title);
     }
 
+
+    // return Cake from CakeModel
     private Cake convertCakeFromModel(CakeModel model){
         Cake cake = new Cake();
         cake.setId(model.getId());
@@ -57,6 +63,7 @@ public class CakeService {
         return convertToResponse(cakeRepository.findAll());
     }
 
+    // filter by Title
     public List<CakeModel> findByFilter(String search) {
         if (search == null || search.isEmpty()){
             return findAll();
@@ -69,6 +76,7 @@ public class CakeService {
         return fields.stream().map(this::fillResponse).collect(Collectors.toList());
     }
 
+    // convert Cake to Cake Model
     private CakeModel fillResponse(Cake cake) {
         CakeModel response = new CakeModel();
         response.setId(cake.getId());
@@ -76,5 +84,27 @@ public class CakeService {
         response.setDescription(cake.getDescription());
         response.setImage(cake.getImage());
         return response;
+    }
+
+    // file download
+    public InputStreamResource downloadFile(){
+        List<CakeModel> cakes = findAll();
+
+        ObjectMapper objectMapper = new ObjectMapper();
+        String arrayToJson = null;
+        InputStreamResource resource = null;
+
+        try {
+            arrayToJson = objectMapper.writeValueAsString(cakes);
+            BufferedWriter writer = new BufferedWriter(new FileWriter("cakes.txt"));
+            writer.write(arrayToJson);
+            writer.close();
+            resource = new InputStreamResource(new ByteArrayInputStream(arrayToJson.getBytes("UTF-8")));
+
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            ex.getMessage();
+        }
+        return resource;
     }
 }
